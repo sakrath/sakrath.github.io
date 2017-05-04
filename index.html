@@ -99,7 +99,7 @@
                             Max number and topic
                         </h3>
                     </a>
-                    <p class="post-meta">Posted by <a href="#">Writer</a> on September 24, 2014</p>
+                    <p class="post-meta">Posted by <a href="#">Writer</a> on 2014-02-22</p>
                 </div>
                 <hr>
 				<div id="content"></div>
@@ -168,16 +168,49 @@
 
 <script type="text/babel">
 	var data = [
-		{subject: "Test 1", text: "This is one", example : "example test11", writer : "kk", write_date : "September 24, 2014"},
-		{subject: "Test Text Two", text: "This is Two", example : "example 22", writer : "님님", write_date : "october 11, 2016"}
+		{subject: "Test 1", text: "This is one", example : "example test11", writer : "kk", write_date : "2014-04-08", writer_page:"kk.html"},
+		{subject: "Test Text Two", text: "This is Two", example : "example 22", writer : "님님", write_date : "2017-03-31", writer_page:"nim.html"}
 	];
 
 	var CommentBox = React.createClass({
+		var today = new Date();
+		var dd = today.getDate();
+		var mm = today.getMonth()+1; //January is 0!
+		var yyyy = today.getFullYear();
+
+		if(dd<10) {
+			dd='0'+dd
+		} 
+
+		if(mm<10) {
+			mm='0'+mm
+		} 
+
+		today = yyyy+'-'+mm+'-'+dd;
+
+		getInitialState : function(){
+			return {data: this.props.data};
+		},
+
+		dataChange : function (subject, text){
+			
+			var tmpData = this.state.data;
+			tmpData.push({
+				subject : subject,
+				text : text,
+				writer : "Me",
+				write_date : today,
+				writer_page : "Me.html"
+			});
+
+			this.setState({data:tmpData});
+		},
+
 		render: function() {
 		  return (
 			<div className="post-list">
-			  <CommentList {...this.props} />
-			  <CommentForm />
+			  <CommentList data={this.state.data} />
+			  <CommentForm formHandler={this.dataChange}/>
 			</div>
 		  );
 		}
@@ -187,8 +220,10 @@
 		render: function() {
 		  var comments = this.props.data.map(function(test, index){
 			return <Post11 subject={test.subject} key={index}>
-				<h3 className="post-subtitle">{test.text}</h3>
-				<p className="post-meta">Posted by <a href={index}>{test.writer}</a> on {test.write_date}</p>
+				<a href="post.html">
+					<h3 className="post-subtitle">{test.text}</h3>
+				</a>
+				<p className="post-meta">Posted by <a href={test.writer_page}>{test.writer}</a> on {test.write_date}</p>
 			</Post11>
 		  }.bind(this));
 
@@ -201,10 +236,24 @@
 	});
 
 	var CommentForm = React.createClass({
+		formOnChange : function(e){
+			e.preventDefault();
+			var subject = this.refs.subject.value;
+			var text = this.refs.text.value;
+
+			if(subject != "" && text != ""){
+				this.props.formHandler(subject,text);
+				this.refs.subject.value="";
+				this.refs.text.value="";
+			}else{
+				alert("빈칸을 채우세요!");
+			}
+		},
+
 		render: function() {
 			return (
 			  <div className="commentForm">
-				<form className="commentForm">
+				<form className="commentForm" onSubmit={this.formOnChange}>
 				  <input type="text" placeholder="subject" ref="subject"/>
 				  <input type="text" placeholder="text" ref="text"/>
 				  <input type="submit" value="Post" />
@@ -218,12 +267,12 @@
 		render: function() {
 		  return (
 			<div className="post-preview">
-				<h1 className="post-title">
-					{this.props.subject}
-				</h1>
-				<a href="post.html">					
-					{this.props.children}
+				<a href="post.html">
+					<h1 className="post-title">
+						{this.props.subject}
+					</h1>
 				</a>
+				{this.props.children}
 				<hr/>
 			</div>
 		  );
